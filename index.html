@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- blob: solo para mostrar un comprobante que el servidor entrega (img-src y frame-src); se revoca al cerrar.
+       Solo se ejecuta código propio y el SDK de Firebase Auth; solo se conecta a Apps Script y a Firebase.
+       frame-ancestors no funciona en una meta: lo cubren js/antiframe.js y la cabecera real del archivo publicar/_headers. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://www.gstatic.com/firebasejs/10.12.2/; style-src 'self'; img-src 'self' data: blob:; frame-src blob:; connect-src https://script.google.com https://script.googleusercontent.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#0b0b0c">
+  <title>Dojo Manager</title>
+  <link rel="icon" href="../assets/logo/orellanos-logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="js/antiframe.js" defer></script>
+  <script src="js/config.js" defer></script>
+  <script src="js/temas.js" defer></script>
+  <script src="js/enlaces.js" defer></script>
+  <script src="js/ui.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/acceso.js" defer></script>
+  <script src="js/plataforma.js" defer></script>
+  <script src="js/excel.js" defer></script>
+  <script src="js/graficos.js" defer></script>
+  <script src="js/vistas/general.js" defer></script>
+  <script src="js/vistas/admin-dojos.js" defer></script>
+  <script src="js/vistas/admin.js" defer></script>
+  <script src="js/vistas/tutor.js" defer></script>
+  <script src="js/vistas/alumno.js" defer></script>
+  <script src="js/vistas/dashboard.js" defer></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body data-modo="acceso">
+  <a class="salto" href="#contenido">Saltar al contenido</a>
+  <div id="franja" role="status" hidden></div>
+  <header id="cabecera" hidden></header>
+  <nav id="menu" aria-label="Principal" hidden></nav>
+  <main id="contenido" tabindex="-1"><p class="cargando">Cargando…</p></main>
+  <footer class="pie">
+    <div>WhatsApp <a href="https://wa.me/50247269442" target="_blank" rel="noopener noreferrer">+502 4726 9442</a></div>
+    <div>Powered by <b>Pixantech</b></div>
+  </footer>
+  <div id="avisos" aria-live="polite"></div>
+  <noscript><p class="cargando">Esta aplicación necesita JavaScript.</p></noscript>
+</body>
+</html>
