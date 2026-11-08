@@ -67,8 +67,8 @@
     var tema = ui.temaDeUrl();
     var porSlug = dojo && window.DOJO_TEMAS && Object.prototype.hasOwnProperty.call(window.DOJO_TEMAS, dojo.slug) ? window.DOJO_TEMAS[dojo.slug] : null;
     // Decorativo: logo y color del dojo (del servidor ya validados, o de la tabla local por slug).
-    // El servidor guarda el logo relativo a la raíz publicada (assets/logo/x.svg); desde web/ se sube un nivel.
-    var visual = porSlug || (dojo ? { nombre: dojo.nombre, logo: dojo.logo ? '../' + dojo.logo : '', color: dojo.color } : tema);
+    // El servidor guarda el logo como assets/logo/x.svg; en la carpeta publicada los logos están en img/.
+    var visual = porSlug || (dojo ? { nombre: dojo.nombre, logo: dojo.logo ? dojo.logo.replace(/^assets\/logo\//, 'img/') : '', color: dojo.color } : tema);
     ui.aplicarTema(visual);
     document.body.dataset.modo = 'app';
 
