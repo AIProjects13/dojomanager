@@ -23,7 +23,7 @@ body[data-modo=acceso] #franja,body[data-modo=acceso] #cabecera,body[data-modo=a
 /* Cabecera y menú */
 #cabecera{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:12px 20px;background:var(--sup);border-bottom:1px solid var(--lin)}
 .marca{display:flex;align-items:center;gap:10px;font-family:Impact,"Arial Narrow Bold",Arial,sans-serif;font-weight:400;font-synthesis:none;font-size:20px;letter-spacing:.04em;text-transform:uppercase;min-width:0}
-.marca img{flex:none;width:40px;height:40px}.marca span{overflow-wrap:anywhere}
+.marca img{flex:none;width:52px;height:52px}.marca span{overflow-wrap:anywhere}
 .usuario{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;font-size:14px;color:var(--mut);min-width:0}
 .usuario b{color:var(--txt);overflow-wrap:anywhere}
 #menu{background:var(--neg);border-bottom:1px solid var(--lin);padding:0 12px}
@@ -266,3 +266,13 @@ dialog.dialogo-grande form>button{margin:0 8px 8px 0}
   .g-barras li{grid-template-columns:minmax(0,1fr) auto}
   .g-barras .g-barra-svg{grid-column:1 / -1;order:3}
 }
+
+/* Ingreso: botón para mostrar u ocultar la contraseña, y logo del dojo grande y centrado en las tarjetas de acceso. */
+.con-ver-clave{display:flex;gap:8px;align-items:stretch}
+.con-ver-clave input{flex:1 1 auto;min-width:0}
+.ver-clave{flex:none;min-width:88px;min-height:44px;font:inherit;font-size:15px;color:var(--txt);background:var(--sup2);border:1px solid var(--borde);cursor:pointer;padding:0 12px}
+.ver-clave:hover{border-color:var(--rojo,#d71920)}
+.tarjeta .marca{flex-direction:column;justify-content:center;text-align:center;gap:12px}
+.tarjeta .marca img{width:150px;height:150px}
+.pie a.pixantech{color:inherit}
+.pie a.pixantech:hover b{text-decoration:underline}

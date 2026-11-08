@@ -207,6 +207,19 @@
     var boton = el('button', { type: 'submit', class: 'primario', texto: op.textoBoton || 'Guardar' });
     var form = el('form', { novalidate: true });
 
+    // Todo campo de contraseña lleva su botón para mostrar u ocultar lo escrito.
+    function conMostrarClave(ctl) {
+      var b = el('button', { type: 'button', class: 'ver-clave', texto: 'Mostrar', 'aria-pressed': 'false', 'aria-label': 'Mostrar contraseña' });
+      b.addEventListener('click', function () {
+        var ver = ctl.type === 'password';
+        ctl.type = ver ? 'text' : 'password';
+        b.textContent = ver ? 'Ocultar' : 'Mostrar';
+        b.setAttribute('aria-pressed', ver ? 'true' : 'false');
+        b.setAttribute('aria-label', ver ? 'Ocultar contraseña' : 'Mostrar contraseña');
+      });
+      return el('div', { class: 'con-ver-clave' }, ctl, b);
+    }
+
     campos.forEach(function (c, i) {
       var id = 'campo-' + c.nombre + '-' + i + '-' + Math.random().toString(36).slice(2, 6);
       var tipo = c.tipo || 'text';
@@ -228,7 +241,7 @@
       controles[c.nombre] = { ctl: ctl, tipo: tipo };
       var cuerpo = tipo === 'checkbox'
         ? el('label', { for: id }, ctl, el('span', { texto: c.etiqueta }))
-        : [el('label', { for: id, texto: c.etiqueta }), ctl];
+        : [el('label', { for: id, texto: c.etiqueta }), tipo === 'password' ? conMostrarClave(ctl) : ctl];
       form.appendChild(el('div', { class: 'campo' + (tipo === 'checkbox' ? ' casilla' : '') }, cuerpo,
         c.ayuda ? el('p', { class: 'ayuda', id: id + '-ayuda', texto: c.ayuda }) : null));
     });
