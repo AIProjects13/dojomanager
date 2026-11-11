@@ -6,7 +6,7 @@ Para cambiar una foto, reemplaza el archivo y conserva exactamente su nombre. La
 |---|---|---|---|---|
 | `portada.jpg` | Portada | Kru Tony Moore | CC BY-SA 4.0 | [Kicking Thai Pads](https://commons.wikimedia.org/wiki/File:Kicking_Thai_Pads.JPG) |
 | `jiu-jitsu.jpg` | Disciplina: jiu jitsu | Mark Bonica | CC BY 2.0 | [120/365 Taking the Back](https://commons.wikimedia.org/wiki/File:120_365_Taking_the_Back_(4565556770).jpg) |
-| `kempo-karate.jpg` | Disciplina: kempo karate | Empty hands ev | CC BY-SA 4.0 | [Selbstverteidigung Kenpo Karate](https://commons.wikimedia.org/wiki/File:Selbstverteidigung-Kenpo-Karate-empty-hands-eV-Flaming-Fist-Kenpo.jpg) |
+| `kempo-karate.jpg` | Disciplina: kenpo karate | Empty hands ev | CC BY-SA 4.0 | [Selbstverteidigung Kenpo Karate](https://commons.wikimedia.org/wiki/File:Selbstverteidigung-Kenpo-Karate-empty-hands-eV-Flaming-Fist-Kenpo.jpg) |
 | `muay-thai.jpg` | Disciplina: muay thai | Kru Tony Moore | CC BY-SA 4.0 | [Kicking Thai Pads](https://commons.wikimedia.org/wiki/File:Kicking_Thai_Pads.JPG) |
 | `box.jpg` | Disciplina: box | Jeanne Menjoulet | CC BY 2.0 | [Boxing training](https://commons.wikimedia.org/wiki/File:Boxing_training_(48783906312).jpg) |
 
