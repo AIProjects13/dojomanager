@@ -11,7 +11,8 @@
       temas: [
         ['Ver y crear tus dojos', ['Entra a "Mis dojos". Arriba ves cada dojo con su plan y el estado de su cuenta.', 'Para abrir un dojo nuevo, llena "Crear un dojo" al final de la página y elige el plan viendo su precio.']],
         ['Entrar a un dojo', ['En "Mis dojos" > "Administrar un dojo", toca la tarjeta del dojo.', 'Verás quién lo administra y sus tutores, y accesos a Alumnos, Tutores, Clases, Planes, Pagos, Suspendidos, Plantillas y Ajustes de ese dojo.']],
-        ['Nombrar al administrador de un dojo', ['Dentro del dojo, toca "Crear administrador o tutor". Escribe el correo y el nombre y elige "Administrador".', 'Se muestra una clave temporal una sola vez: entrégala en persona. La persona la cambia al entrar.']],
+        ['Nombrar al administrador de un dojo', ['Dentro del dojo, toca "Crear administrador o tutor". Escribe el correo y el nombre y elige "Administrador".', 'Se muestra una clave temporal una sola vez: entrégala en persona. La persona la cambia al entrar. Los administradores se crean uno por uno.']],
+        ['Cargar muchos tutores o alumnos', ['Dentro del dojo, en Tutores o Alumnos, abre "Cargar varios … con Excel". Descarga la plantilla, llénala y súbela.', 'Al terminar se descarga un Excel con cada correo y su clave temporal, una sola vez: guárdalo y entrega cada clave en persona.']],
         ['Cuenta con la plataforma', ['En "Cobros a dojos" ves lo que debe cada dojo y subes el comprobante del depósito. Si tus dojos son de cortesía, esta sección no aparece porque no hay nada que pagar.']],
         ['Ver resultados', ['En "Dashboard" junta todos tus dojos y filtra con las casillas por dojo y disciplina. Compara contra el mes anterior o el mismo mes del año pasado.', 'Toca cualquier cifra para ver los pagos que la forman.']]
       ]
@@ -21,6 +22,7 @@
       intro: 'Llevas el día a día: alumnos, clases, tutores y los pagos de los alumnos.',
       temas: [
         ['Inscribir un alumno', ['Si la persona no tiene cuenta, primero créala en "Cuentas" (nivel Alumno) y entrégale la clave temporal.', 'Luego en "Alumnos" > nuevo alumno: nombre, fecha de nacimiento, plan y titular. Un menor necesita un encargado mayor de edad.']],
+        ['Cargar muchos alumnos o tutores', ['En Alumnos o Tutores abre "Cargar varios … con Excel", descarga la plantilla, llénala y súbela. Al terminar se descarga un Excel con las claves temporales, una sola vez.']],
         ['Clases y cupos', ['En "Clases" defines disciplina, día, horario, cupo y tutor. El sistema no deja inscribir por encima del cupo.']],
         ['Confirmar pagos', ['En "Pagos de alumnos" ves los comprobantes que subieron los alumnos, con la imagen. Compara el monto con lo que debe y toca "Confirmar" o "Rechazar" con un motivo.', 'Al confirmar, el recibo se genera solo y el alumno lo ve al instante. Un pago en efectivo lo registras tú ahí mismo.']],
         ['Atrasos y avisos', ['En "Suspendidos" ves quién se atrasó y cuántos días. Con "Avisos y plantillas" el mensaje de cobro sale con el desglose ya calculado y se abre WhatsApp o Gmail listo para enviar.']],

@@ -88,8 +88,12 @@
           ayuda: 'Elige viendo el precio. Básico por defecto. Cada mes se cobra el precio del plan de cada dojo.'
         }
       ], async function (v) {
+        // Cada dojo genera su propio cargo mensual con la plataforma: se avisa antes de crearlo.
+        var plan = d.planes.filter(function (p) { return p.planId === v.planId; })[0];
+        var cargo = plan && !plan.esCortesia ? P.dinero(plan.precio) + ' al mes (plan ' + plan.nombre + ')' : '';
+        if (cargo && !(await ui.confirmar('Este dojo suma ' + cargo + ' a tu cuenta con la plataforma. El primer cobro llega al cerrar su primer mes. ¿Crear el dojo?', { titulo: 'Cargo por el dojo nuevo', aceptar: 'Crear dojo' }))) return;
         var r = await api('crearDojo', { nombre: v.nombre, slug: v.slug, planId: v.planId });
-        ui.aviso('Dojo ' + r.nombre + ' creado.', 'ok');
+        ui.aviso('Dojo ' + r.nombre + ' creado.' + (cargo ? ' Se suma ' + cargo + ' a tu cuenta; lo ves en "Cobros a dojos".' : ''), 'ok');
         if (ctx.vigente()) await pintar();
       }, { textoBoton: 'Crear dojo' });
       P.seccion(c, 'Crear un dojo', el('div', { class: 'tarjeta ancha tarjeta-form' },

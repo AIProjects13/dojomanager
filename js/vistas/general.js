@@ -326,6 +326,20 @@
     pintar(await api('verificarSeguridad', { soloLeer: true }));
   }
 
+  // ------------------------------------------------------------------ Ver como administrador de dojos (solo mirar)
+  async function verComo(c, ctx) {
+    P.encabezado(c, 'Ver como administrador de dojos', 'Elige un administrador de dojos para ver exactamente lo que él ve. Es solo para mirar: no puedes crear, editar ni confirmar nada, y queda registrado.');
+    var r = await api('listarMembresias', {});
+    if (!ctx.vigente()) return;
+    var lista = r.membresias.filter(function (m) { return m.nivel === 'admin-dojos' && m.estado === 'activo'; });
+    P.seccion(c, 'Administradores de dojos', ui.tabla([
+      { clave: 'nombre', titulo: 'Nombre', formato: function (v, f) { return el('div', null, el('b', { texto: f.nombre || f.correo }), el('p', { class: 'ayuda', texto: f.correo })); } },
+      { clave: 'organizacionNombre', titulo: 'Organización' },
+      { clave: 'membresiaId', titulo: '', formato: function (v) { return el('button', { type: 'button', texto: 'Ver como', al: { click: function () { auth.verComo(v); } } }); } }
+    ], lista, { titulo: 'Administradores de dojos', vacio: 'Aún no hay administradores de dojos. Créalos en "Cuentas".' }));
+  }
+
   ui.vista('uso', uso);
   ui.vista('seguridad', seguridad);
+  ui.vista('ver-como', verComo);
 })();

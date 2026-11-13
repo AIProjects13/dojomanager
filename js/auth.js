@@ -12,7 +12,7 @@
   var mensajeSalida = '';        // aviso para la pantalla de ingreso (p. ej. sesión vencida)
 
   function vacio() {
-    return { usuario: null, membresias: [], membresiaId: '', nivel: '', dojo: null, herramientas: [], cuenta: null, cuentas: [], soloLectura: false, pausado: false, avisoViejo: false };
+    return { usuario: null, membresias: [], membresiaId: '', nivel: '', dojo: null, herramientas: [], cuenta: null, cuentas: [], soloLectura: false, pausado: false, avisoViejo: false, verComoId: '', verComo: null };
   }
   var estado = vacio();
 
@@ -137,11 +137,15 @@
     estado.usuario = s.usuario;
     estado.membresias = s.membresias || [];
     estado.nivel = (estado.membresias.filter(function (m) { return m.membresiaId === estado.membresiaId; })[0] || {}).nivel || '';
+    // Ver como: el general mira el perfil de un administrador de dojos (solo mirar).
+    estado.verComo = s.verComo || null;
+    if (estado.verComo) estado.nivel = 'admin-dojos';
     estado.dojo = ctx.dojo || null;
     estado.herramientas = ctx.herramientas || [];
     estado.cuenta = ctx.cuenta || null;
     estado.cuentas = ctx.cuentas || [];
     estado.cortesia = ctx.cortesia === true;
+    estado.nuevos = ctx.nuevos || [];
     estado.soloLectura = !!ctx.soloLectura;
     estado.pausado = !!ctx.pausado;
   }
@@ -201,7 +205,22 @@
     try { aplicar(await api('sesion', {})); app.pintarCascaron(); } catch (e) { /* el error original ya se mostró */ } finally { refrescando = false; }
   }
 
+  /** El administrador general entra a ver como un administrador de dojos (solo mirar), o vuelve a su panel. */
+  async function verComo(membresiaId) {
+    estado.verComoId = membresiaId || '';
+    ronda++;
+    try {
+      aplicar(await api('sesion', {}));
+      location.hash = '#/inicio';
+      app.mostrar();
+    } catch (e) {
+      estado.verComoId = ''; estado.verComo = null;
+      if (!e.manejado) ui.aviso(e.message || 'No se pudo abrir esa vista.', 'error');
+    }
+  }
+
   window.auth = {
+    verComo: verComo,
     get estado() { return estado; },
     iniciar: iniciar, token: token, recuperarClave: recuperarClave, cerrarSesion: cerrarSesion, reautenticar: reautenticar, sesionVencida: sesionVencida,
     get generacion() { return ronda; },

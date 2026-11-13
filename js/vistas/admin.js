@@ -1427,8 +1427,19 @@
   }
   var PERSONAL = ['general', 'admin-dojos', 'admin'];
   var AVISADORES = ['admin-dojos', 'admin'];
-  registrar('alumnos', PERSONAL, { titulo: 'Alumnos', intro: 'Registra a tus alumnos, mira su ficha y cambia su estado.' }, alumnos);
-  registrar('tutores', PERSONAL, { titulo: 'Tutores', intro: 'Quién da clases y cuándo puede. Asigna cada clase a quien está libre.' }, tutores);
+  /** Carga en grupo por Excel arriba de la pantalla (tutores y alumnos; los administradores se crean uno por uno). */
+  function conExcel(tipo, fn) {
+    return async function (zona, k) {
+      if (window.cargaExcel && zona.parentNode) {
+        var extra = el('details', { class: 'carga-grupo' }, el('summary', { texto: tipo === 'tutor' ? 'Cargar varios tutores con Excel' : 'Cargar varios alumnos con Excel' }),
+          cargaExcel.bloque(k, tipo, async function () { if (k.vigente()) { ui.limpiar(zona); await fn(zona, k); } }));
+        zona.parentNode.insertBefore(extra, zona);
+      }
+      return fn(zona, k);
+    };
+  }
+  registrar('alumnos', PERSONAL, { titulo: 'Alumnos', intro: 'Registra a tus alumnos, mira su ficha y cambia su estado.' }, conExcel('alumno', alumnos));
+  registrar('tutores', PERSONAL, { titulo: 'Tutores', intro: 'Quién da clases y cuándo puede. Asigna cada clase a quien está libre.' }, conExcel('tutor', tutores));
   registrar('clases', PERSONAL, { titulo: 'Clases', intro: 'Tus clases, sus cupos y quién está inscrito. El servidor no deja pasar del cupo.' }, clasesAdmin);
   registrar('planes', PERSONAL, { titulo: 'Planes del dojo', intro: 'Lo que cobras: días por semana, horarios y precio mensual, en quetzales.' }, planes);
   registrar('pagos', PERSONAL, { titulo: 'Pagos de alumnos', intro: 'Comprobantes por confirmar, pagos en efectivo, cobros y recibos.' }, pagos);

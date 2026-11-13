@@ -324,3 +324,10 @@ dialog.dialogo-grande form>button{margin:0 8px 8px 0}
 .tema-ayuda summary{cursor:pointer;padding:12px 0;font-weight:700}
 .tema-ayuda ul,.consejos{margin:0 0 12px;padding-left:20px;color:var(--txt)}
 .tema-ayuda li,.consejos li{margin:6px 0}
+
+/* General viendo como un administrador de dojos. */
+.banda-ver-como{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;margin-top:8px;padding:8px 12px;background:#2a1d00;border:1px solid #e8b23a;color:#ffe2a3;font-weight:600}
+.banda-cargo{flex:1 1 100%;margin-top:8px;padding:8px 12px;background:#2a0d0e;border:1px solid var(--boton);color:#ffd6d3;font-weight:600}
+.carga-grupo{background:var(--sup);border:1px solid var(--lin);margin:0 0 14px;padding:0 14px}
+.carga-grupo summary{cursor:pointer;padding:12px 0;font-weight:700}
+.carga-excel input[type=file]{margin:6px 0;color:var(--txt)}

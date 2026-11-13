@@ -18,24 +18,25 @@
     { v: 'dashboard', t: 'Dashboard', n: ['general', 'admin-dojos', 'admin', 'tutor', 'alumno'], h: 'dashboard', hn: ['admin'], pausa: true, viejo: true, g: 'Resumen' },
     { v: 'dojos', t: 'Dojos y planes', n: ['general'] },
     { v: 'dojos', t: 'Mis dojos', n: ['admin-dojos'], g: 'Mis dojos' },
-    { v: 'cobros-plataforma', t: 'Cobros a dojos', n: ['general', 'admin-dojos', 'admin'], g: 'Cuenta con la plataforma', plataforma: true },
+    { v: 'cobros-plataforma', t: 'Cobros a dojos', n: ['general', 'admin-dojos'], g: 'Cuenta con la plataforma', plataforma: true },
     { v: 'cuentas', t: 'Cuentas', n: ['general', 'admin-dojos', 'admin'], g: 'Mi dojo', enDojo: true },
+    { v: 'ver-como', t: 'Ver como admin. de dojos', n: ['general'] },
     { v: 'mi-cuenta', t: 'Mi cuenta', n: ['general', 'admin-dojos', 'admin', 'tutor'], g: 'Mi cuenta' },
-    { v: 'alumnos', t: 'Alumnos', n: ['general', 'admin-dojos', 'admin'], h: 'alumnos-cobros', g: 'Mi dojo', enDojo: true },
-    { v: 'tutores', t: 'Tutores', n: ['general', 'admin-dojos', 'admin'], h: 'alumnos-cobros', g: 'Mi dojo', enDojo: true },
-    { v: 'clases', t: 'Clases', n: ['general', 'admin-dojos', 'admin', 'tutor', 'alumno'], h: 'clases', g: 'Mi dojo', enDojo: true },
-    { v: 'planes', t: 'Planes del dojo', n: ['general', 'admin-dojos', 'admin'], h: 'alumnos-cobros', g: 'Mi dojo', enDojo: true },
+    { v: 'alumnos', t: 'Alumnos', n: ['admin-dojos', 'admin'], h: 'alumnos-cobros', g: 'Mi dojo', enDojo: true },
+    { v: 'tutores', t: 'Tutores', n: ['admin-dojos', 'admin'], h: 'alumnos-cobros', g: 'Mi dojo', enDojo: true },
+    { v: 'clases', t: 'Clases', n: ['admin-dojos', 'admin', 'tutor', 'alumno'], h: 'clases', g: 'Mi dojo', enDojo: true },
+    { v: 'planes', t: 'Planes del dojo', n: ['admin-dojos', 'admin'], h: 'alumnos-cobros', g: 'Mi dojo', enDojo: true },
     { v: 'disponibilidad', t: 'Disponibilidad', n: ['tutor'], h: 'disponibilidad', g: 'Mi dojo' },
     { v: 'asistencia', t: 'Asistencia', n: ['admin', 'tutor', 'alumno'], h: 'asistencia', g: 'Mi dojo' },
-    { v: 'pagos', t: 'Pagos de alumnos', n: ['general', 'admin-dojos', 'admin'], h: 'alumnos-cobros', g: 'Cobros a alumnos', enDojo: true },
+    { v: 'pagos', t: 'Pagos de alumnos', n: ['admin-dojos', 'admin'], h: 'alumnos-cobros', g: 'Cobros a alumnos', enDojo: true },
     { v: 'cobros', t: 'Mis cobros', n: ['alumno'], pausa: true, g: 'Mis pagos' },
     { v: 'comprobantes', t: 'Subir comprobante', n: ['alumno'], pausa: true, g: 'Mis pagos' },
-    { v: 'recibos', t: 'Recibos', n: ['general', 'admin-dojos', 'admin', 'alumno'], pausa: true, viejo: true, g: 'Cobros a alumnos', galumno: 'Mis pagos' },
+    { v: 'recibos', t: 'Recibos', n: ['admin-dojos', 'admin', 'alumno'], pausa: true, viejo: true, g: 'Cobros a alumnos', galumno: 'Mis pagos' },
     { v: 'permisos', t: 'Mis permisos', n: ['alumno'], pausa: true, viejo: true, g: 'Mi cuenta' },
     { v: 'datos', t: 'Mis datos', n: ['alumno'], pausa: true, viejo: true, g: 'Mi cuenta' },
     { v: 'plantillas', t: 'Avisos y plantillas', n: ['admin-dojos', 'admin'], h: 'plantillas', g: 'Cobros a alumnos', enDojo: true },
     { v: 'suspendidos', t: 'Suspendidos', n: ['admin-dojos', 'admin'], h: 'seguimiento', g: 'Cobros a alumnos', enDojo: true },
-    { v: 'config-dojo', t: 'Ajustes del dojo', n: ['general', 'admin-dojos', 'admin'], h: 'alumnos-cobros', g: 'Ajustes', enDojo: true },
+    { v: 'config-dojo', t: 'Ajustes del dojo', n: ['admin-dojos', 'admin'], h: 'alumnos-cobros', g: 'Ajustes', enDojo: true },
     { v: 'aviso-editar', t: 'Aviso de privacidad', n: ['general', 'admin'], g: 'Ajustes' },
     { v: 'ayuda', t: 'Ayuda', n: ['admin-dojos', 'admin', 'tutor', 'alumno'], pausa: true, viejo: true, g: 'Ayuda' },
     { v: 'uso', t: 'Uso de hojas', n: ['general'] },
@@ -74,6 +75,8 @@
     // Decorativo: logo y color del dojo (del servidor ya validados, o de la tabla local por slug).
     // El servidor guarda el logo como assets/logo/x.svg; en la carpeta publicada los logos están en img/.
     var visual = porSlug || (dojo ? { nombre: dojo.nombre, logo: dojo.logo ? dojo.logo.replace(/^assets\/logo\//, 'img/') : '', color: dojo.color } : tema);
+    // El administrador general es Dojo Manager: sin logo ni nombre de ningún dojo.
+    if (e.nivel === 'general' || e.verComo) visual = { nombre: 'Dojo Manager' };
     ui.aplicarTema(visual);
     document.body.dataset.modo = 'app';
 
@@ -89,6 +92,16 @@
     }
     u.appendChild(el('button', { type: 'button', class: 'enlace', texto: 'Salir', al: { click: function () { auth.cerrarSesion(); } } }));
     cab.appendChild(u);
+    if (e.nivel === 'admin-dojos' && e.nuevos && e.nuevos.length) {
+      cab.appendChild(el('div', { class: 'banda-cargo', role: 'status' }, el('span', {
+        texto: 'Cargo por dojos nuevos: ' + e.nuevos.map(function (n) { return n.nombre + ' (' + plat.dinero(n.precio) + ' al mes)'; }).join(', ') + '. Detalle en "Cobros a dojos".'
+      })));
+    }
+    if (e.verComo) {
+      cab.appendChild(el('div', { class: 'banda-ver-como', role: 'status' },
+        el('span', { texto: 'Estás viendo como ' + (e.verComo.nombre || 'administrador de dojos') + ' · solo mirar' }),
+        el('button', { type: 'button', class: 'enlace', texto: 'Volver a mi panel', al: { click: function () { auth.verComo(''); } } })));
+    }
     cab.hidden = false;
 
     var menu = ui.limpiar(document.getElementById('menu'));
