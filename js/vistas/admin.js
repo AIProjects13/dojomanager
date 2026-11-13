@@ -436,6 +436,7 @@
         k.nivel === 'general' ? Promise.resolve({ alertas: [] }) : k.llamar('listarAlertas', {})
       ]);
       datos = { alumnos: r[0].alumnos, planes: r[1].planes, alertas: r[2].alertas };
+      datos.cuentasAlumno = r[0].cuentasSinFicha || [];   // cuentas de alumno del dojo que aún no tienen ficha
       datos.planPorId = {};
       datos.planes.forEach(function (p) { datos.planPorId[p.planDojoId] = p; });
     }
@@ -509,6 +510,7 @@
     // ---- Alta de un alumno: primero la cuenta (quien recibe los cobros y entra a la app), luego la ficha
     function panelNuevo() {
       var conocidas = {};   // usuarioId -> nombre
+      (datos.cuentasAlumno || []).forEach(function (m) { conocidas[m.usuarioId] = (m.nombre || 'Cuenta sin nombre') + (m.correo ? ' (' + m.correo + ')' : ''); });
       datos.alumnos.forEach(function (a) { if (a.titularUsuarioId) conocidas[a.titularUsuarioId] = a.titularNombre || 'Cuenta sin nombre'; });
       var selTitular = el('select', { 'aria-label': 'Cuenta del encargado o titular' });
       function llenar(elegir) {

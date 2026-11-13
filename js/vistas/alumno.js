@@ -13,7 +13,7 @@
   function diasEntre(a, b) { return Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 86400000); }
   function suma(lista, f) { return Math.round(lista.reduce(function (s, x) { return s + f(x); }, 0) * 100) / 100; }
   function sinAsistencia(c) {
-    c.appendChild(el('p', { class: 'vacio', texto: 'Tu cuenta es de solo asistencia, así que aquí no hay cobros. Los cobros los ve y los paga la persona que figura como titular de tu ficha.' }));
+    c.appendChild(el('p', { class: 'vacio', texto: 'No hay cobros a tu nombre. Si aún no estás inscrito, pide al administrador del dojo que te inscriba. Si ya lo estás, los cobros los ve y los paga la persona que figura como titular de tu ficha.' }));
   }
 
   /** Estado de un cobro tal como lo ve quien paga: texto corto y color. */
