@@ -108,6 +108,8 @@
   }
 
   var elegido = { gen: -1, id: '' };
+  // El panel de un dojo (Mis dojos) deja elegido ese dojo antes de abrir una de estas pantallas.
+  window.elegirDojoTrabajo = function (id) { elegido = { gen: auth.generacion, id: id }; };
   async function correr(zona, k, cuerpo) {
     try { await cuerpo(zona, k); } catch (e) {
       if ((e && e.manejado) || !k.vigente()) return;

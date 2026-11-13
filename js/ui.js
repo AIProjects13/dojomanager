@@ -91,8 +91,27 @@
     return /^[a-z0-9-]{1,40}$/.test(s) && Object.prototype.hasOwnProperty.call(temas, s) ? temas[s] : null;
   }
   function marca(tema) {
-    var logo = tema && tema.logo && !/^[a-z]+:/i.test(tema.logo) ? el('img', { src: ruta(tema.logo), alt: '', width: 40, height: 40 }) : null;
+    var local = function (r) { return typeof r === 'string' && r && !/^[a-z]+:/i.test(r); };
+    var lista = tema && tema.logos ? Array.prototype.filter.call(tema.logos, local) : [];
+    var logo = null;
+    if (lista.length > 1) logo = rotador(lista);
+    else if (tema && local(tema.logo)) logo = el('img', { src: ruta(tema.logo), alt: '', width: 40, height: 40 });
     return el('div', { class: 'marca' }, logo, el('span', { texto: (tema && tema.nombre) || 'Dojo Manager' }));
+  }
+  /** Logos que se turnan: el que sale se desliza a la izquierda mientras el siguiente entra por la derecha. */
+  function rotador(lista) {
+    var caja = el('span', { class: 'rotador', 'aria-hidden': 'true' });
+    var imgs = lista.map(function (r, i) { return caja.appendChild(el('img', { src: ruta(r), alt: '', class: i === 0 ? 'activo' : '' })); });
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return caja;
+    var i = 0;
+    var reloj = setInterval(function () {
+      if (!document.body.contains(caja)) { clearInterval(reloj); return; }
+      var sale = imgs[i]; i = (i + 1) % imgs.length; var entra = imgs[i];
+      imgs.forEach(function (x) { x.classList.remove('sale'); });
+      sale.classList.remove('activo'); sale.classList.add('sale');
+      entra.classList.add('activo');
+    }, 3200);
+    return caja;
   }
 
   // ---------------------------------------------------------------- Avisos, confirmación y franja

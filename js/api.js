@@ -56,20 +56,25 @@
       return api(accion, payload, { forzar: true });   // el SDK no pudo dar token: un intento de renovarlo
     }
     var res;
-    try {
-      res = await fetch(cfg.API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: accion, idToken: token, membresiaId: auth.estado.membresiaId || undefined, payload: payload || {} }),
-        credentials: 'omit', referrerPolicy: 'no-referrer'
-      });
-    } catch (e) {
-      if (generacion !== auth.generacion) throw descartar();
-      throw ApiError('NETWORK', MENSAJES.NETWORK);
-    }
     var json;
-    // Si mientras tanto se cerró la sesión o se cambió de membresía, esta respuesta es de otra persona o de otro contexto: se descarta.
-    try { json = JSON.parse(await res.text()); } catch (e) { throw ApiError('BAD_RESPONSE', MENSAJES.BAD_RESPONSE); }
+    if (window.espera) espera.inicio();   // animación con consejos si el servidor tarda
+    try {
+      try {
+        res = await fetch(cfg.API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: accion, idToken: token, membresiaId: auth.estado.membresiaId || undefined, payload: payload || {} }),
+          credentials: 'omit', referrerPolicy: 'no-referrer'
+        });
+      } catch (e) {
+        if (generacion !== auth.generacion) throw descartar();
+        throw ApiError('NETWORK', MENSAJES.NETWORK);
+      }
+      // Si mientras tanto se cerró la sesión o se cambió de membresía, esta respuesta es de otra persona o de otro contexto: se descarta.
+      try { json = JSON.parse(await res.text()); } catch (e) { throw ApiError('BAD_RESPONSE', MENSAJES.BAD_RESPONSE); }
+    } finally {
+      if (window.espera) espera.fin();
+    }
     if (generacion !== auth.generacion) throw descartar();
     if (!json || typeof json !== 'object' || (json.ok && !('data' in json))) throw ApiError('BAD_RESPONSE', MENSAJES.BAD_RESPONSE);
     if (json.ok) return json.data;

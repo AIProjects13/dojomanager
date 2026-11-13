@@ -141,6 +141,7 @@
     estado.herramientas = ctx.herramientas || [];
     estado.cuenta = ctx.cuenta || null;
     estado.cuentas = ctx.cuentas || [];
+    estado.cortesia = ctx.cortesia === true;
     estado.soloLectura = !!ctx.soloLectura;
     estado.pausado = !!ctx.pausado;
   }

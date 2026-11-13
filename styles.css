@@ -276,3 +276,51 @@ dialog.dialogo-grande form>button{margin:0 8px 8px 0}
 .tarjeta .marca img{width:150px;height:150px}
 .pie a.pixantech{color:inherit}
 .pie a.pixantech:hover b{text-decoration:underline}
+
+/* Logos de Orellanos (MMA, Jiu jitsu, Kenpo karate) turnándose con deslizamiento. */
+.rotador{position:relative;flex:none;display:block;width:76px;height:52px;overflow:hidden}
+.rotador img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transform:translateX(100%);transition:transform .7s cubic-bezier(.2,.8,.2,1),opacity .7s}
+.rotador img.activo{opacity:1;transform:none}
+.rotador img.sale{opacity:0;transform:translateX(-100%)}
+.tarjeta .marca .rotador{width:200px;height:150px}
+@media(prefers-reduced-motion:reduce){.rotador img{transition:none}}
+
+/* Espera: saco de box que se balancea con un guante que golpea, y consejos por perfil. */
+.espera{position:fixed;left:50%;bottom:24px;z-index:60;transform:translate(-50%,20px);width:min(440px,calc(100vw - 32px));background:var(--sup);border:1px solid var(--lin);border-top:3px solid var(--boton);padding:16px 18px;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.espera.visible{opacity:1;transform:translate(-50%,0)}
+.espera-escena{position:relative;width:120px;height:86px}
+.espera-cadena{position:absolute;left:58px;top:0;width:4px;height:16px;background:var(--mut)}
+.espera-saco{position:absolute;left:44px;top:14px;width:32px;height:62px;border-radius:12px 12px 14px 14px;background:linear-gradient(90deg,#8e0f12,#d71920 45%,#8e0f12);transform-origin:16px -2px;animation:saco 1s ease-in-out infinite}
+.espera-guante{position:absolute;left:6px;top:36px;width:26px;height:22px;border-radius:12px 14px 14px 12px;background:#f4f4f5;animation:golpe 1s ease-in-out infinite}
+.espera-titulo{margin:0;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:13px;color:var(--acento)}
+.espera-consejo{margin:0;text-align:center;color:var(--txt);font-size:14px;min-height:40px}
+@keyframes saco{0%,100%{transform:rotate(0)}35%{transform:rotate(14deg)}65%{transform:rotate(-6deg)}}
+@keyframes golpe{0%,100%{transform:translateX(0)}25%{transform:translateX(14px)}40%{transform:translateX(0)}}
+@media(prefers-reduced-motion:reduce){.espera-saco,.espera-guante{animation:none}}
+
+/* Menú agrupado de los perfiles del dojo. */
+#menu ul.agrupado{gap:0 18px;align-items:flex-start;padding:6px 0}
+#menu .grupo-menu>ul{display:flex;flex-wrap:wrap;gap:2px}
+#menu .titulo-grupo{display:block;padding:6px 14px 0;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--acento);font-weight:700}
+#menu .grupo-menu a{padding:8px 14px}
+@media(max-width:760px){#menu .grupo-menu>ul{flex-direction:column}}
+
+/* Panel de cada dojo (Mis dojos). */
+.tarjetas-dojo{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:10px 0 16px}
+.tarjeta-dojo{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;padding:14px;background:var(--sup2);border:1px solid var(--lin);color:var(--txt);font:inherit;cursor:pointer;min-height:44px}
+.tarjeta-dojo b{font-size:17px}
+.tarjeta-dojo span{color:var(--mut);font-size:14px}
+.tarjeta-dojo:hover,.tarjeta-dojo.activa{border-color:var(--acento)}
+.panel-dojo h3{margin:6px 0 8px;font-size:22px}
+.personal-dojo p{margin:4px 0}
+.accesos-dojo{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:12px}
+.acceso-dojo{display:flex;flex-direction:column;gap:4px;padding:14px;background:var(--sup);border:1px solid var(--lin);border-left:3px solid var(--boton);text-decoration:none;color:var(--txt)}
+.acceso-dojo span{color:var(--mut);font-size:14px}
+.acceso-dojo:hover{border-color:var(--acento)}
+
+/* Ayuda. */
+.ayuda-intro{color:var(--mut);max-width:720px}
+.tema-ayuda{background:var(--sup);border:1px solid var(--lin);margin:8px 0;padding:0 14px}
+.tema-ayuda summary{cursor:pointer;padding:12px 0;font-weight:700}
+.tema-ayuda ul,.consejos{margin:0 0 12px;padding-left:20px;color:var(--txt)}
+.tema-ayuda li,.consejos li{margin:6px 0}

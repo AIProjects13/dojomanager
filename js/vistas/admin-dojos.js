@@ -6,6 +6,54 @@
   var el = ui.el;
   var P = plat;
 
+  // ------------------------------------------------------------------ Panel de cada dojo
+  // Tarjetas con los dojos; al elegir uno se ven su administración y tutores, y accesos a sus pantallas con ese dojo ya elegido.
+  var ACCESOS_DOJO = [
+    ['alumnos', 'Alumnos', 'Fichas, encargados y estado de cada alumno'],
+    ['tutores', 'Tutores', 'Personal que da clases y su disponibilidad'],
+    ['clases', 'Clases y cupos', 'Horarios, cupos e inscripciones'],
+    ['planes', 'Planes del dojo', 'Días por semana y precio para alumnos'],
+    ['pagos', 'Pagos de alumnos', 'Comprobantes por confirmar, efectivo y recibos'],
+    ['suspendidos', 'Suspendidos', 'Alumnos atrasados y avisos por WhatsApp'],
+    ['plantillas', 'Avisos y plantillas', 'Mensajes de cobro y de cambio de clase'],
+    ['config-dojo', 'Ajustes del dojo', 'Modo de cobro y días de gracia'],
+    ['cuentas', 'Crear administrador o tutor', 'Cuentas nuevas para este dojo']
+  ];
+  function panelDojos(c, ctx, lista) {
+    var activos = lista.filter(function (x) { return x.estado === 'activo'; });
+    if (!activos.length) return;
+    var detalle = el('div', { class: 'panel-dojo' });
+    var tarjetas = el('div', { class: 'tarjetas-dojo' }, activos.map(function (dj) {
+      return el('button', { type: 'button', class: 'tarjeta-dojo', al: { click: function () { abrir(dj); } } },
+        el('b', { texto: dj.nombre }), el('span', { texto: P.planTexto(dj.plan) }), P.etiquetaCuenta(dj.cuenta.estado));
+    }));
+    P.seccion(c, 'Administrar un dojo', el('div', null, el('p', { class: 'ayuda', texto: 'Elige un dojo para ver quién lo administra y entrar a sus alumnos, tutores, clases y cobros.' }), tarjetas, detalle));
+    async function abrir(dj) {
+      Array.prototype.forEach.call(tarjetas.children, function (b) { b.classList.toggle('activa', b.textContent.indexOf(dj.nombre) === 0); });
+      ui.limpiar(detalle);
+      detalle.appendChild(el('h3', { texto: dj.nombre }));
+      var personal = el('div', { class: 'personal-dojo' }, el('p', { class: 'cargando', texto: 'Cargando personal…' }));
+      detalle.appendChild(personal);
+      detalle.appendChild(el('div', { class: 'accesos-dojo' }, ACCESOS_DOJO.map(function (a) {
+        return el('a', { href: '#/' + a[0], class: 'acceso-dojo', al: { click: function () { if (window.elegirDojoTrabajo) window.elegirDojoTrabajo(dj.dojoId); } } },
+          el('b', { texto: a[1] }), el('span', { texto: a[2] }));
+      })));
+      try {
+        var r = await api('listarMembresias', {});
+        if (!ctx.vigente()) return;
+        var del = r.membresias.filter(function (m) { return m.dojoId === dj.dojoId && m.estado === 'activo'; });
+        var nombres = function (nivel) { return del.filter(function (m) { return m.nivel === nivel; }).map(function (m) { return m.nombre || m.correo; }).join(', '); };
+        ui.limpiar(personal);
+        personal.appendChild(el('p', null, el('b', { texto: 'Administración: ' }), nombres('admin') || 'sin asignar (créala en "Crear administrador o tutor")'));
+        personal.appendChild(el('p', null, el('b', { texto: 'Tutores: ' }), nombres('tutor') || 'aún no hay'));
+      } catch (e) {
+        if (!ctx.vigente()) return;
+        ui.limpiar(personal);
+        personal.appendChild(el('p', { class: 'ayuda', texto: 'No se pudo cargar el personal: ' + (e.message || 'intenta de nuevo') }));
+      }
+    }
+  }
+
   // ------------------------------------------------------------------ Mis dojos
   async function dojos(c, ctx) {
     async function pintar() {
@@ -29,7 +77,7 @@
         },
         { clave: 'cuenta', titulo: 'Debe vencido', alinear: 'der', formato: function (v) { return P.dinero(v.deudaVencida); } }
       ], d.dojos, { titulo: 'Mis dojos', vacio: 'Aún no tienes dojos. Crea el primero abajo.' }));
-      c.appendChild(el('p', null, el('a', { href: '#/cobros-plataforma', texto: 'Ver cobros y subir comprobantes' }), ' · ', el('a', { href: '#/cuentas', texto: 'Crear administradores, tutores y alumnos' })));
+      panelDojos(c, ctx, d.dojos);
 
       var org = d.organizaciones[0];
       var formDojo = ui.formulario([

@@ -11,30 +11,33 @@
    * y solo para admin, tutor y alumno, que están ligados a un dojo), pausa = visible con la credencial pausada,
    * viejo = visible mientras el aviso nuevo está sin aceptar (solo recibos).
    */
+  // g = grupo del menú (solo para los perfiles del dojo; general conserva su menú plano).
+  // enDojo = para admin-dojos no va en el menú: se entra desde el panel de cada dojo en "Mis dojos".
   var MENU = [
-    { v: 'inicio', t: 'Inicio', n: TODOS },
-    { v: 'dashboard', t: 'Dashboard', n: ['general', 'admin-dojos', 'admin', 'tutor', 'alumno'], h: 'dashboard', hn: ['admin'], pausa: true, viejo: true },
+    { v: 'inicio', t: 'Inicio', n: TODOS, g: 'Resumen' },
+    { v: 'dashboard', t: 'Dashboard', n: ['general', 'admin-dojos', 'admin', 'tutor', 'alumno'], h: 'dashboard', hn: ['admin'], pausa: true, viejo: true, g: 'Resumen' },
     { v: 'dojos', t: 'Dojos y planes', n: ['general'] },
-    { v: 'dojos', t: 'Mis dojos', n: ['admin-dojos'] },
-    { v: 'cobros-plataforma', t: 'Cobros a dojos', n: ['general', 'admin-dojos', 'admin'] },
-    { v: 'cuentas', t: 'Cuentas', n: ['general', 'admin-dojos', 'admin'] },
-    { v: 'mi-cuenta', t: 'Mi cuenta', n: ['general', 'admin-dojos', 'admin', 'tutor'] },
-    { v: 'alumnos', t: 'Alumnos', n: ['general', 'admin-dojos', 'admin'], h: 'alumnos-cobros' },
-    { v: 'tutores', t: 'Tutores', n: ['general', 'admin-dojos', 'admin'], h: 'alumnos-cobros' },
-    { v: 'clases', t: 'Clases', n: ['general', 'admin-dojos', 'admin', 'tutor', 'alumno'], h: 'clases' },
-    { v: 'planes', t: 'Planes del dojo', n: ['general', 'admin-dojos', 'admin'], h: 'alumnos-cobros' },
-    { v: 'disponibilidad', t: 'Disponibilidad', n: ['tutor'], h: 'disponibilidad' },
-    { v: 'asistencia', t: 'Asistencia', n: ['admin', 'tutor', 'alumno'], h: 'asistencia' },
-    { v: 'pagos', t: 'Pagos de alumnos', n: ['general', 'admin-dojos', 'admin'], h: 'alumnos-cobros' },
-    { v: 'cobros', t: 'Mis cobros', n: ['alumno'], pausa: true },
-    { v: 'comprobantes', t: 'Subir comprobante', n: ['alumno'], pausa: true },
-    { v: 'recibos', t: 'Recibos', n: ['general', 'admin-dojos', 'admin', 'alumno'], pausa: true, viejo: true },
-    { v: 'permisos', t: 'Mis permisos', n: ['alumno'], pausa: true, viejo: true },
-    { v: 'datos', t: 'Mis datos', n: ['alumno'], pausa: true, viejo: true },
-    { v: 'plantillas', t: 'Avisos y plantillas', n: ['admin-dojos', 'admin'], h: 'plantillas' },
-    { v: 'suspendidos', t: 'Suspendidos', n: ['admin-dojos', 'admin'], h: 'seguimiento' },
-    { v: 'config-dojo', t: 'Ajustes del dojo', n: ['general', 'admin-dojos', 'admin'], h: 'alumnos-cobros' },
-    { v: 'aviso-editar', t: 'Aviso de privacidad', n: ['general', 'admin'] },
+    { v: 'dojos', t: 'Mis dojos', n: ['admin-dojos'], g: 'Mis dojos' },
+    { v: 'cobros-plataforma', t: 'Cobros a dojos', n: ['general', 'admin-dojos', 'admin'], g: 'Cuenta con la plataforma', plataforma: true },
+    { v: 'cuentas', t: 'Cuentas', n: ['general', 'admin-dojos', 'admin'], g: 'Mi dojo', enDojo: true },
+    { v: 'mi-cuenta', t: 'Mi cuenta', n: ['general', 'admin-dojos', 'admin', 'tutor'], g: 'Mi cuenta' },
+    { v: 'alumnos', t: 'Alumnos', n: ['general', 'admin-dojos', 'admin'], h: 'alumnos-cobros', g: 'Mi dojo', enDojo: true },
+    { v: 'tutores', t: 'Tutores', n: ['general', 'admin-dojos', 'admin'], h: 'alumnos-cobros', g: 'Mi dojo', enDojo: true },
+    { v: 'clases', t: 'Clases', n: ['general', 'admin-dojos', 'admin', 'tutor', 'alumno'], h: 'clases', g: 'Mi dojo', enDojo: true },
+    { v: 'planes', t: 'Planes del dojo', n: ['general', 'admin-dojos', 'admin'], h: 'alumnos-cobros', g: 'Mi dojo', enDojo: true },
+    { v: 'disponibilidad', t: 'Disponibilidad', n: ['tutor'], h: 'disponibilidad', g: 'Mi dojo' },
+    { v: 'asistencia', t: 'Asistencia', n: ['admin', 'tutor', 'alumno'], h: 'asistencia', g: 'Mi dojo' },
+    { v: 'pagos', t: 'Pagos de alumnos', n: ['general', 'admin-dojos', 'admin'], h: 'alumnos-cobros', g: 'Cobros a alumnos', enDojo: true },
+    { v: 'cobros', t: 'Mis cobros', n: ['alumno'], pausa: true, g: 'Mis pagos' },
+    { v: 'comprobantes', t: 'Subir comprobante', n: ['alumno'], pausa: true, g: 'Mis pagos' },
+    { v: 'recibos', t: 'Recibos', n: ['general', 'admin-dojos', 'admin', 'alumno'], pausa: true, viejo: true, g: 'Cobros a alumnos', galumno: 'Mis pagos' },
+    { v: 'permisos', t: 'Mis permisos', n: ['alumno'], pausa: true, viejo: true, g: 'Mi cuenta' },
+    { v: 'datos', t: 'Mis datos', n: ['alumno'], pausa: true, viejo: true, g: 'Mi cuenta' },
+    { v: 'plantillas', t: 'Avisos y plantillas', n: ['admin-dojos', 'admin'], h: 'plantillas', g: 'Cobros a alumnos', enDojo: true },
+    { v: 'suspendidos', t: 'Suspendidos', n: ['admin-dojos', 'admin'], h: 'seguimiento', g: 'Cobros a alumnos', enDojo: true },
+    { v: 'config-dojo', t: 'Ajustes del dojo', n: ['general', 'admin-dojos', 'admin'], h: 'alumnos-cobros', g: 'Ajustes', enDojo: true },
+    { v: 'aviso-editar', t: 'Aviso de privacidad', n: ['general', 'admin'], g: 'Ajustes' },
+    { v: 'ayuda', t: 'Ayuda', n: ['admin-dojos', 'admin', 'tutor', 'alumno'], pausa: true, viejo: true, g: 'Ayuda' },
     { v: 'uso', t: 'Uso de hojas', n: ['general'] },
     { v: 'seguridad', t: 'Seguridad', n: ['general'] }
   ];
@@ -43,6 +46,8 @@
     var e = auth.estado;
     return MENU.filter(function (m) {
       if (m.n.indexOf(e.nivel) === -1) return false;
+      // Cortesía: no hay cobros de la plataforma que ver ni comprobantes que subir.
+      if (m.plataforma && e.cortesia && e.nivel !== 'general') return false;
       var ligado = e.nivel === 'admin' || e.nivel === 'tutor' || e.nivel === 'alumno';
       var exige = m.h && ligado && (!m.hn || m.hn.indexOf(e.nivel) !== -1);
       if (exige && e.herramientas.indexOf(m.h) === -1) return false;
@@ -94,9 +99,25 @@
       var abierto = menu.classList.toggle('cerrado') === false;
       boton.setAttribute('aria-expanded', String(abierto));
     });
-    entradas().forEach(function (m) {
-      lista.appendChild(el('li', null, el('a', { href: '#/' + m.v, texto: m.t, 'data-vista': m.v })));
-    });
+    var enlace = function (m) { return el('a', { href: '#/' + m.v, texto: m.t, 'data-vista': m.v }); };
+    if (e.nivel === 'general') {
+      entradas().forEach(function (m) { lista.appendChild(el('li', null, enlace(m))); });
+    } else {
+      // Perfiles del dojo: herramientas agrupadas; el admin-dojos entra a cada dojo desde "Mis dojos".
+      var grupos = [];
+      entradas().forEach(function (m) {
+        if (e.nivel === 'admin-dojos' && m.enDojo) return;
+        var g = (e.nivel === 'alumno' && m.galumno) || m.g || 'Más';
+        var grupo = grupos.filter(function (x) { return x.g === g; })[0];
+        if (!grupo) { grupo = { g: g, items: [] }; grupos.push(grupo); }
+        grupo.items.push(m);
+      });
+      lista.classList.add('agrupado');
+      grupos.forEach(function (grupo) {
+        lista.appendChild(el('li', { class: 'grupo-menu' }, el('span', { class: 'titulo-grupo', texto: grupo.g }),
+          el('ul', null, grupo.items.map(function (m) { return el('li', null, enlace(m)); }))));
+      });
+    }
     menu.classList.add('cerrado');
     menu.appendChild(boton);
     menu.appendChild(lista);
