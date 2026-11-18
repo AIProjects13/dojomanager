@@ -26,9 +26,11 @@
     { v: 'tutores', t: 'Tutores', n: ['admin-dojos', 'admin'], h: 'alumnos-cobros', g: 'Mi dojo', enDojo: true },
     { v: 'clases', t: 'Clases', n: ['admin-dojos', 'admin', 'tutor', 'alumno'], h: 'clases', g: 'Mi dojo', enDojo: true },
     { v: 'planes', t: 'Planes del dojo', n: ['admin-dojos', 'admin'], h: 'alumnos-cobros', g: 'Mi dojo', enDojo: true },
+    { v: 'nuestros-tutores', t: 'Nuestros tutores', n: ['admin', 'tutor', 'alumno'], pausa: true, g: 'Mi dojo' },
+    { v: 'perfil-tutor', t: 'Mi perfil de tutor', n: ['tutor'], g: 'Mi cuenta' },
     { v: 'disponibilidad', t: 'Disponibilidad', n: ['tutor'], h: 'disponibilidad', g: 'Mi dojo' },
     { v: 'asistencia', t: 'Asistencia', n: ['admin', 'tutor', 'alumno'], h: 'asistencia', g: 'Mi dojo' },
-    { v: 'pagos', t: 'Pagos de alumnos', n: ['admin-dojos', 'admin'], h: 'alumnos-cobros', g: 'Cobros a alumnos', enDojo: true },
+    { v: 'pagos', t: 'Pagos de alumnos', n: ['admin-dojos', 'admin'], h: 'alumnos-cobros', g: 'Cobros a alumnos' },
     { v: 'cobros', t: 'Mis cobros', n: ['alumno'], pausa: true, g: 'Mis pagos' },
     { v: 'comprobantes', t: 'Subir comprobante', n: ['alumno'], pausa: true, g: 'Mis pagos' },
     { v: 'recibos', t: 'Recibos', n: ['admin-dojos', 'admin', 'alumno'], pausa: true, viejo: true, g: 'Cobros a alumnos', galumno: 'Mis pagos' },
@@ -135,6 +137,7 @@
     menu.appendChild(boton);
     menu.appendChild(lista);
     menu.hidden = false;
+    avisoPorRevisar();
 
     // Franja fija de estado, según lo que el servidor le dio a este nivel:
     //  alumno pausado; admin: estado de pago de su dojo con motivo; admin-dojos: resumen del peor de sus dojos;
@@ -147,6 +150,20 @@
     else ui.franjaEstado(null);
     marcarActual();
   }
+
+  /** Cuántos comprobantes esperan revisión: número junto a "Pagos de alumnos" (administrador del dojo y de dojos). Solo informa. */
+  function avisoPorRevisar() {
+    var e = auth.estado;
+    var a = document.querySelector('#menu a[data-vista="pagos"]');
+    if (!a || e.verComo || (e.nivel !== 'admin' && e.nivel !== 'admin-dojos')) return;
+    api('pendientesRevision', {}).then(function (r) {
+      var viejo = a.querySelector('.contador');
+      if (viejo) a.removeChild(viejo);
+      if (!r || !r.total) return;
+      a.appendChild(el('span', { class: 'contador', 'aria-label': r.total + ' por revisar', texto: String(r.total) }));
+    }).catch(function () {});
+  }
+  window.avisoPorRevisar = avisoPorRevisar;
 
   function nombreActual() {
     var m = /^#\/([a-z0-9-]+)/.exec(location.hash);

@@ -60,8 +60,25 @@
       var d = await api('listarDojos', {});
       if (!ctx.vigente()) return;
       ui.limpiar(c);
-      P.encabezado(c, 'Mis dojos', 'Tus dojos, su plan y el estado de su cuenta con la plataforma. El plan solo lo cambia la administración general.');
+      P.encabezado(c, 'Mis dojos', 'Tus dojos, su plan y el estado de su cuenta con la plataforma. Cada dojo tiene su propio plan y su día de cobro.');
       var etiquetaPlan = function (p) { return p.nombre + ' · ' + P.dinero(p.precio) + ' al mes'; };
+      var porPlan = {};
+      d.planes.forEach(function (p) { porPlan[p.planId] = p; });
+      var cambiarPlan = function (f) {
+        if (f.plan && f.plan.esCortesia) return el('p', { class: 'ayuda', texto: 'Cortesía: no se cobra. Para cambiarlo, habla con la administración de Dojo Manager.' });
+        var sel = el('select', { 'aria-label': 'Plan para ' + f.nombre }, d.planes.map(function (p) { return el('option', { value: p.planId, texto: etiquetaPlan(p) }); }));
+        sel.value = f.plan ? f.plan.planId : '';
+        var b = P.boton('Cambiar', '', 'Cambiar el plan de ' + f.nombre, P.protegido(c, async function () {
+          var plan = porPlan[sel.value];
+          if (!plan || (f.plan && plan.planId === f.plan.planId)) { ui.aviso('Ese ya es el plan de ' + f.nombre + '.'); return; }
+          var ok = await ui.confirmar('Cambiar ' + f.nombre + ' al plan ' + plan.nombre + ' (' + P.dinero(plan.precio) + ' al mes). Aplica desde hoy: este mes se cobra por días con cada plan y lo ya cobrado no cambia.', { titulo: 'Cambiar plan', aceptar: 'Cambiar plan' });
+          if (!ok) return;
+          await api('asignarPlan', { dojoId: f.dojoId, planId: plan.planId });
+          ui.aviso('Plan ' + plan.nombre + ' para ' + f.nombre + '.', 'ok');
+          if (ctx.vigente()) await pintar();
+        }));
+        return el('div', { class: 'asignar-plan' }, sel, b);
+      };
 
       P.seccion(c, 'Dojos', ui.tabla([
         {
@@ -75,7 +92,14 @@
             return el('div', null, P.etiquetaCuenta(f.cuenta.estado), f.cuenta.estado === 'rechazado' && f.cuenta.motivo ? el('p', { class: 'motivo', texto: 'Motivo: ' + f.cuenta.motivo }) : null);
           }
         },
-        { clave: 'cuenta', titulo: 'Debe vencido', alinear: 'der', formato: function (v) { return P.dinero(v.deudaVencida); } }
+        { clave: 'cuenta', titulo: 'Debe vencido', alinear: 'der', formato: function (v) { return P.dinero(v.deudaVencida); } },
+        { clave: 'dojoId', titulo: 'Cambiar plan', formato: function (v, f) { return f.estado === 'activo' ? cambiarPlan(f) : '—'; } },
+        {
+          clave: 'diaPago', titulo: 'Día de cobro', formato: function (v, f) {
+            if (f.estado !== 'activo') return '—';
+            return f.plan && f.plan.esCortesia ? 'No se cobra' : P.diaCobroDojo(c, f, async function () { if (ctx.vigente()) await pintar(); });
+          }
+        }
       ], d.dojos, { titulo: 'Mis dojos', vacio: 'Aún no tienes dojos. Crea el primero abajo.' }));
       panelDojos(c, ctx, d.dojos);
 
@@ -85,14 +109,15 @@
         { nombre: 'slug', etiqueta: 'Identificador (opcional)', maxlength: 40, autocomplete: 'off', ayuda: 'Minúsculas, números y guiones. Si lo dejas vacío se arma con el nombre.' },
         {
           nombre: 'planId', etiqueta: 'Plan', tipo: 'select', valor: 'basico', opciones: d.planes.map(function (p) { return { valor: p.planId, etiqueta: etiquetaPlan(p) }; }),
-          ayuda: 'Elige viendo el precio. Básico por defecto. Cada mes se cobra el precio del plan de cada dojo.'
-        }
+          ayuda: 'Elige viendo el precio. Básico por defecto. Cada dojo paga su propio plan.'
+        },
+        { nombre: 'diaPago', etiqueta: 'Día de cobro', tipo: 'select', valor: '1', opciones: P.DIAS_COBRO, ayuda: 'El primer mes se cobra por días hasta ese día.' }
       ], async function (v) {
         // Cada dojo genera su propio cargo mensual con la plataforma: se avisa antes de crearlo.
         var plan = d.planes.filter(function (p) { return p.planId === v.planId; })[0];
         var cargo = plan && !plan.esCortesia ? P.dinero(plan.precio) + ' al mes (plan ' + plan.nombre + ')' : '';
-        if (cargo && !(await ui.confirmar('Este dojo suma ' + cargo + ' a tu cuenta con la plataforma. El primer cobro llega al cerrar su primer mes. ¿Crear el dojo?', { titulo: 'Cargo por el dojo nuevo', aceptar: 'Crear dojo' }))) return;
-        var r = await api('crearDojo', { nombre: v.nombre, slug: v.slug, planId: v.planId });
+        if (cargo && !(await ui.confirmar('Este dojo suma ' + cargo + ' a tu cuenta con la plataforma, con cobro el ' + v.diaPago + ' de cada mes. El primer cobro, por días, llega ese día. ¿Crear el dojo?', { titulo: 'Cargo por el dojo nuevo', aceptar: 'Crear dojo' }))) return;
+        var r = await api('crearDojo', { nombre: v.nombre, slug: v.slug, planId: v.planId, diaPago: v.diaPago });
         ui.aviso('Dojo ' + r.nombre + ' creado.' + (cargo ? ' Se suma ' + cargo + ' a tu cuenta; lo ves en "Cobros a dojos".' : ''), 'ok');
         if (ctx.vigente()) await pintar();
       }, { textoBoton: 'Crear dojo' });

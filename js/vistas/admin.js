@@ -538,6 +538,7 @@
         { nombre: 'fechaNacimiento', etiqueta: 'Fecha de nacimiento', tipo: 'date', requerido: true, max: hoyGT() },
         { nombre: 'fechaIngreso', etiqueta: 'Fecha de ingreso (opcional)', tipo: 'date', max: hoyGT(), ayuda: 'Si la dejas vacía es hoy.' },
         { nombre: 'planDojoId', etiqueta: 'Plan', tipo: 'select', opciones: [{ valor: '', etiqueta: 'Sin plan por ahora (no se le cobra)' }].concat(datos.planes.map(function (p) { return { valor: p.planDojoId, etiqueta: p.nombre + ' · ' + Q(p.precio) }; })) },
+        { nombre: 'diaPago', etiqueta: 'Día de pago', tipo: 'select', valor: '1', opciones: OPCIONES_DIA_PAGO, ayuda: 'Su primer cobro se calcula por los días que faltan hasta su día de pago.' },
         { nombre: 'cuentaPropia', etiqueta: 'Es una persona adulta y entra con esa misma cuenta', tipo: 'checkbox', ayuda: 'Márcalo si el alumno es mayor de edad y usa su propia cuenta. Si es menor, su cuenta es la del encargado.' },
         { nombre: 'encargadoFechaNacimiento', etiqueta: 'Fecha de nacimiento del encargado', tipo: 'date', max: hoyGT(), ayuda: 'Un menor necesita un encargado mayor de edad. Si el encargado tiene su propia ficha de alumno aquí, no hace falta; si el sistema la necesita, te la pide. No se guarda.' }
       ];
@@ -547,6 +548,7 @@
         var payload = { nombre: v.nombre, fechaNacimiento: v.fechaNacimiento, titularUsuarioId: selTitular.value };
         if (v.fechaIngreso) payload.fechaIngreso = v.fechaIngreso;
         if (v.planDojoId) payload.planDojoId = v.planDojoId;
+        if (v.diaPago === '15') payload.diaPago = '15';
         if (!menor && v.cuentaPropia) payload.usuarioId = selTitular.value;
         if (menor && v.encargadoFechaNacimiento) payload.encargadoFechaNacimiento = v.encargadoFechaNacimiento;
         try {
@@ -602,13 +604,21 @@
       zona.appendChild(acc('← Volver a la lista', '', null, function () { return lista(); }));
       zona.appendChild(el('h2', { texto: a.nombre }));
       zona.appendChild(el('p', null, etiquetaEstado(estadoCalc), a.esMenor ? [' ', P.etiqueta('Menor de edad', 'info')] : null));
+      var manual = f.cuenta ? f.cuenta.pausaManual : '';
       if (estadoCalc === 'pausado') {
-        zona.appendChild(el('p', { class: 'advertencia', role: 'status', texto: 'Su credencial está pausada por un pago atrasado' + (f.cuenta ? ' (' + f.cuenta.diasAtraso + ' días de atraso)' : '') + '. Puede ver sus cobros y subir su comprobante, pero no entrena hasta ponerse al día.' }));
+        zona.appendChild(el('p', { class: 'advertencia', role: 'status', texto: manual === 'pausar'
+          ? 'Su credencial está pausada a mano por la administración. Puede ver sus cobros y subir su comprobante, pero no entrena hasta que le quiten la pausa.'
+          : 'Su credencial está pausada por un pago atrasado' + (f.cuenta ? ' (' + f.cuenta.diasAtraso + ' días de atraso)' : '') + '. Puede ver sus cobros y subir su comprobante, pero no entrena hasta ponerse al día.' }));
+      } else if (manual === 'activar') {
+        zona.appendChild(el('p', { class: 'ayuda', texto: 'La administración le quitó la pausa por sus atrasos anteriores. Lo que venza desde entonces vuelve a contar.' }));
       }
+      var bPausa = f.cuenta ? botonPausa(acc, k, alumnoId, a.nombre, estadoCalc, manual, repintar) : null;
+      if (bPausa) zona.appendChild(P.acciones(bPausa));
       zona.appendChild(el('div', { class: 'datos' },
         P.dato('Nació', P.fecha(a.fechaNacimiento) + ' (' + edadDe(a.fechaNacimiento) + ' años)'),
         P.dato('Ingresó', P.fecha(a.fechaIngreso)),
         P.dato('Plan', f.plan ? f.plan.nombre + ' · ' + Q(f.plan.precio) : 'Sin plan'),
+        P.dato('Día de pago', 'El ' + (a.diaPago || '1') + ' de cada mes' + (a.diaPagoProximo && a.diaPagoProximo !== a.diaPago ? ' (desde el próximo mes, el ' + a.diaPagoProximo + ')' : '')),
         P.dato('Encargado o titular', f.titular.nombre || '—'),
         P.dato('Correo de contacto', f.titular.correo || '—'),
         P.dato('Teléfono de contacto', f.titular.telefono || 'Sin teléfono')));
@@ -703,7 +713,7 @@
       // Cobros
       var seccionCobros = panel(null, el('h3', { texto: 'Cobros' }));
       seccionCobros.appendChild(tablaCobros(cobros, cobra, a, repintar));
-      if (cobra) {
+      if (revisaPagos(k)) {
         var pendientes = cobros.filter(function (c) { return c.pendiente > 0; });
         seccionCobros.appendChild(P.acciones(
           acc('Registrar pago en efectivo', 'primario', 'Registrar un pago en efectivo de ' + a.nombre, async function () {
@@ -712,7 +722,7 @@
             await repintar();
             if (out.recibo) zona.insertBefore(panelRecibo(k, zona, out.recibo, 'Pago en efectivo registrado' + (out.exceso > 0 ? ' (sobran ' + Q(out.exceso) + ': quedan como saldo a favor)' : '')), zona.children[1] || null);
           }),
-          acc('Agregar cobro único', '', 'Agregar un cobro único a ' + a.nombre, async function () { if (await dialogoCobroUnico(k, a) && k.vigente()) await repintar(); })));
+          cobra ? acc('Agregar cobro único', '', 'Agregar un cobro único a ' + a.nombre, async function () { if (await dialogoCobroUnico(k, a) && k.vigente()) await repintar(); }) : null));
         if (!pendientes.length) seccionCobros.appendChild(el('p', { class: 'ayuda', texto: 'No debe nada ahora. Un pago en efectivo sin cobros pendientes queda como saldo a favor.' }));
       }
       zona.appendChild(seccionCobros);
@@ -796,6 +806,10 @@
           opciones: [{ valor: '', etiqueta: 'Sin plan' }].concat(planes.map(function (p) { return { valor: p.planDojoId, etiqueta: p.nombre + ' · ' + Q(p.precio) }; })),
           ayuda: 'Un cambio de plan aplica desde el siguiente periodo; lo ya cobrado no cambia.'
         },
+        {
+          nombre: 'diaPago', etiqueta: 'Día de pago', tipo: 'select', valor: a.diaPagoProximo || '1', opciones: OPCIONES_DIA_PAGO,
+          ayuda: 'Si ya tiene mensualidades, el cambio vale desde el mes siguiente. Los días del cambio no se prorratean: si hace falta, ajústalo con un descuento.'
+        },
         { nombre: 'encargadoFechaNacimiento', etiqueta: 'Fecha de nacimiento del encargado (solo si el sistema la pide)', tipo: 'date', max: hoyGT(), ayuda: 'No se guarda.' }
       ];
       var form = ui.formulario(campos, async function (v) {
@@ -804,6 +818,7 @@
         if (v.fechaNacimiento !== a.fechaNacimiento) cambios.fechaNacimiento = v.fechaNacimiento;
         if (v.fechaIngreso !== a.fechaIngreso) cambios.fechaIngreso = v.fechaIngreso;
         if (v.planDojoId !== (f.plan ? f.plan.planDojoId : '')) cambios.planDojoId = v.planDojoId;
+        if (v.diaPago !== (a.diaPagoProximo || '1')) cambios.diaPago = v.diaPago;
         if (!Object.keys(cambios).length) throw new Error('No cambiaste nada.');
         if (v.encargadoFechaNacimiento) cambios.encargadoFechaNacimiento = v.encargadoFechaNacimiento;
         cambios.alumnoId = a.alumnoId;
@@ -1167,10 +1182,38 @@
     zona.appendChild(el('p', { class: 'ayuda', texto: 'Los cambios valen para los cobros que se generen desde ahora.' }));
   }
 
+  var OPCIONES_DIA_PAGO = [{ valor: '1', etiqueta: 'El 1 de cada mes' }, { valor: '15', etiqueta: 'El 15 de cada mes' }];
+
+  // ------------------------------------------------------------------ Pausa a mano (administrador del dojo y administrador de dojos)
+  function revisaPagos(k) { return k.nivel === 'admin' || k.nivel === 'admin-dojos'; }
+  /** Botón para pausar o quitar la pausa a un alumno. estado: 'activo'|'pausado'; manual: ''|'pausar'|'activar'. */
+  function botonPausa(acc, k, alumnoId, nombre, estado, manual, alTerminar) {
+    if (!revisaPagos(k) || (estado !== 'activo' && estado !== 'pausado')) return null;
+    if (estado === 'pausado') {
+      return acc('Quitar pausa', '', 'Quitar la pausa a ' + nombre, async function () {
+        var ok = await ui.confirmar(manual === 'pausar'
+          ? 'Se quita la pausa que pusiste a mano a ' + nombre + '. Si tiene cobros con mucho atraso, el sistema lo puede volver a pausar.'
+          : nombre + ' vuelve a entrenar aunque tenga pagos atrasados. Lo que venza desde hoy vuelve a contar para la pausa.', { titulo: 'Quitar pausa', aceptar: 'Quitar pausa' });
+        if (!ok) return;
+        var r = await k.llamar('pausarAlumno', { alumnoId: alumnoId, modo: manual === 'pausar' ? 'automatico' : 'activar' });
+        ui.aviso(r.estado === 'pausado' ? nombre + ' sigue pausado por atraso: toca "Quitar pausa" otra vez para dejarlo entrenar.' : nombre + ' ya no está pausado.', 'ok');
+        if (k.vigente()) await alTerminar();
+      });
+    }
+    return acc('Pausar cuenta', 'peligro', 'Pausar la cuenta de ' + nombre, async function () {
+      var ok = await ui.confirmar('Se pausa la credencial de ' + nombre + ': no entrena ni se le marca asistencia hasta que le quites la pausa. Puede seguir viendo sus cobros y subiendo comprobantes.', { titulo: 'Pausar cuenta', aceptar: 'Pausar cuenta', peligro: true });
+      if (!ok) return;
+      await k.llamar('pausarAlumno', { alumnoId: alumnoId, modo: 'pausar' });
+      ui.aviso(nombre + ' quedó pausado.', 'ok');
+      if (k.vigente()) await alTerminar();
+    });
+  }
+
   // ------------------------------------------------------------------ Pagos: comprobantes por confirmar, efectivo, cobros y recibos
   async function pagos(zona, k) {
     var acc = acciones_(zona);
     var cobra = k.nivel === 'admin';
+    var revisa = revisaPagos(k);
     var ultimoRecibo = null;
     async function pintar() {
       var rs = await Promise.all([
@@ -1187,9 +1230,18 @@
       await Promise.all(Object.keys(ids).slice(0, 25).map(function (id) {
         return k.llamar('listarCobrosAlumnos', { alumnoId: id }).then(function (x) { deben[id] = x.cobros.reduce(function (s, c) { return s + c.pendiente; }, 0); });
       }));
+      var resumen = null;
+      if (k.nivel === 'admin-dojos') resumen = await k.llamar('pendientesRevision', {});
       if (!k.vigente()) return;
       ui.limpiar(zona);
+      if (window.avisoPorRevisar) window.avisoPorRevisar();
       if (ultimoRecibo) zona.appendChild(ultimoRecibo);
+      if (resumen && resumen.dojos.length > 1) {
+        zona.appendChild(el('p', { class: resumen.total ? 'advertencia' : 'ayuda', role: 'status' },
+          el('b', { texto: 'Por revisar en tus dojos: ' }),
+          resumen.dojos.map(function (d) { return d.nombre + ' (' + d.porConfirmar + ')'; }).join(' · '),
+          resumen.total ? '. Cambia de dojo arriba para revisarlos.' : '.'));
+      }
 
       if (cobra) {
         zona.appendChild(panel(null, el('h2', { texto: 'Generar cobros' }),
@@ -1226,7 +1278,9 @@
             return el('div', { class: 'cobro-cuadro' },
               conocido && v.length ? el('span', { texto: 'Debe en total: ' + Q(debe) }) : null,
               el('span', { texto: 'Cubre: ' + Q(cubre) }),
-              el('ul', { class: 'lista-simple' }, v.map(function (l) { return el('li', { texto: l.alumnoNombre + ' · ' + l.concepto + ' · ' + Q(l.monto) }); })),
+              el('ul', { class: 'lista-simple' }, v.map(function (l) {
+                return el('li', null, l.alumnoNombre + ' · ' + l.concepto + ' · ' + Q(l.monto), l.estadoAlumno === 'pausado' ? [' ', P.etiqueta(l.pausaManual === 'pausar' ? 'Pausado a mano' : 'Pausado', 'mal')] : null);
+              })),
               el('p', { class: p.exceso > 0.005 || (conocido && p.monto < debe - 0.005) ? 'motivo' : 'ayuda', texto: nota }));
           }
         },
@@ -1234,7 +1288,7 @@
           clave: 'pagoId', titulo: 'Acciones', formato: function (v, p) {
             var b = [];
             if (p.archivoId) b.push(acc('Ver comprobante', '', 'Ver el comprobante de ' + (p.titularNombre || 'la cuenta') + ' por ' + Q(p.monto), function () { return P.verComprobante(p.archivoId, { vigente: k.vigente }); }));
-            if (cobra) {
+            if (revisa) {
               b.push(acc('Confirmar', 'primario', 'Confirmar el pago de ' + (p.titularNombre || 'la cuenta') + ' por ' + Q(p.monto), async function () {
                 var ok = await ui.confirmar('Confirmar el pago de ' + (p.titularNombre || 'esta cuenta') + ' por ' + Q(p.monto) + ' (lo que declaró). Se genera el recibo y los cobros quedan pagados.' + (p.exceso > 0.005 ? ' Sobran ' + Q(p.exceso) + ' que quedan como saldo a favor.' : ''), { titulo: 'Confirmar pago', aceptar: 'Confirmar pago' });
                 if (!ok) return;
@@ -1250,12 +1304,19 @@
                 ui.aviso('Comprobante rechazado.', 'ok');
                 if (k.vigente()) await pintar();
               }));
+              var vistos = {};
+              p.lineas.forEach(function (l) {
+                if (vistos[l.alumnoId]) return;
+                vistos[l.alumnoId] = true;
+                var bp = botonPausa(acc, k, l.alumnoId, l.alumnoNombre, l.estadoAlumno, l.pausaManual, pintar);
+                if (bp) { bp.textContent += ' · ' + l.alumnoNombre; b.push(bp); }
+              });
             }
             return P.acciones.apply(null, b);
           }
         }
       ], porConfirmar, { titulo: 'Comprobantes por confirmar', vacio: 'No hay comprobantes esperando. Cuando alguien suba uno, aparecerá aquí.' }));
-      if (!cobra) zona.appendChild(el('p', { class: 'ayuda', texto: 'Confirmar o rechazar lo hace el administrador del dojo; aquí solo lo ves.' }));
+      if (!revisa) zona.appendChild(el('p', { class: 'ayuda', texto: 'Confirmar o rechazar lo hace la administración del dojo; aquí solo lo ves.' }));
 
       // Cobros pendientes
       var pend = mes.filter(function (c) { return c.pendiente > 0; });
@@ -1273,7 +1334,9 @@
         {
           clave: 'alumnoId', titulo: 'Acciones', formato: function (v, c) {
             var b = [acc('Ver ficha', '', 'Ver la ficha de ' + c.alumnoNombre, function () { D.pendiente = v; location.hash = '#/alumnos'; })];
-            if (cobra) b.unshift(acc('Registrar efectivo', 'primario', 'Registrar un pago en efectivo de ' + c.alumnoNombre, function () { return efectivoRapido(v, c.alumnoNombre); }));
+            if (revisa) b.unshift(acc('Registrar efectivo', 'primario', 'Registrar un pago en efectivo de ' + c.alumnoNombre, function () { return efectivoRapido(v, c.alumnoNombre); }));
+            var bp = botonPausa(acc, k, v, c.alumnoNombre, c.estadoAlumno, c.pausaManual, pintar);
+            if (bp) b.push(bp);
             return P.acciones.apply(null, b);
           }
         }
@@ -1414,6 +1477,7 @@
               host.scrollIntoView({ block: 'nearest' });
             }));
           }
+          b.push(botonPausa(acc, k, v, s.nombre, 'pausado', s.pausaManual, async function () { ui.limpiar(zona); await suspendidos(zona, k); }));
           b.push(acc('Ver ficha', '', 'Ver la ficha de ' + s.nombre, function () { D.pendiente = v; location.hash = '#/alumnos'; }));
           return P.acciones.apply(null, b);
         }

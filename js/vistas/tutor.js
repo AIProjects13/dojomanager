@@ -230,6 +230,108 @@
     await cargar();
   }
 
+  // ------------------------------------------------------------------ Perfil del tutor (aptitudes y fotos)
+  /** base64 -> URL blob: para un <img> (se asigna por propiedad: el() no acepta blob:). */
+  function urlFoto(r) {
+    var bin = atob(r.base64);
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return URL.createObjectURL(new Blob([bytes], { type: r.mime }));
+  }
+  function imagen(alt) { var i = el('img', { alt: alt, class: 'foto-tutor', loading: 'lazy' }); return i; }
+  async function cargarFoto(img, k, usuarioId, archivoId) {
+    try {
+      var r = await k.llamar('verFotoTutor', { usuarioId: usuarioId, archivoId: archivoId });
+      if (!k.vigente()) return;
+      img.src = urlFoto(r);
+      img.addEventListener('load', function () { URL.revokeObjectURL(img.src); }, { once: true });
+    } catch (e) { img.alt = 'No se pudo cargar la foto'; }
+  }
+  /** Achica la foto en el navegador (lado mayor 1200 px, JPG) para que suba rápido y pese menos de 2 MB. */
+  async function fotoLista(archivo) {
+    if (!archivo) throw new Error('Elige una foto.');
+    if (!/^image\/(jpeg|png)$/.test(archivo.type)) throw new Error('La foto debe ser JPG o PNG.');
+    if (archivo.size > 15 * 1024 * 1024) throw new Error('La foto es demasiado grande.');
+    var url = URL.createObjectURL(archivo);
+    try {
+      var img = await new Promise(function (ok, mal) { var i = new Image(); i.onload = function () { ok(i); }; i.onerror = function () { mal(new Error('No se pudo leer la foto.')); }; i.src = url; });
+      var escala = Math.min(1, 1200 / Math.max(img.naturalWidth, img.naturalHeight));
+      var cv = document.createElement('canvas');
+      cv.width = Math.max(1, Math.round(img.naturalWidth * escala));
+      cv.height = Math.max(1, Math.round(img.naturalHeight * escala));
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      var blob = await new Promise(function (ok) { cv.toBlob(ok, 'image/jpeg', 0.85); });
+      if (!blob) throw new Error('No se pudo preparar la foto.');
+      var buf = new Uint8Array(await blob.arrayBuffer());
+      var s = '';
+      for (var i = 0; i < buf.length; i += 0x8000) s += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+      return { nombre: 'foto.jpg', mime: 'image/jpeg', base64: btoa(s) };
+    } finally { URL.revokeObjectURL(url); }
+  }
+
+  async function miPerfil(zona, k) {
+    var acc = D.acciones_(zona);
+    var r = await k.llamar('miPerfilTutor', {});
+    if (!k.vigente()) return;
+    var p = r.perfil;
+    var yo = k.usuarioId || (auth.estado.usuario && auth.estado.usuario.usuarioId) || '';
+    async function repintar() { ui.limpiar(zona); await miPerfil(zona, k); }
+
+    zona.appendChild(D.panel(null, el('h2', { texto: 'Tus datos' }), ui.formulario([
+      { nombre: 'disciplinas', etiqueta: 'Disciplinas que enseñas', valor: p.disciplinas, maxlength: 200, ayuda: 'Por ejemplo: BJJ, Muay Thai, defensa personal.' },
+      { nombre: 'grado', etiqueta: 'Grado o cinturón', valor: p.grado, maxlength: 80 },
+      { nombre: 'experiencia', etiqueta: 'Experiencia', valor: p.experiencia, maxlength: 200, ayuda: 'Años enseñando, torneos, certificaciones.' },
+      { nombre: 'presentacion', etiqueta: 'Preséntate a tus alumnos', tipo: 'textarea', valor: p.presentacion, maxlength: 800, filas: 5 },
+      { nombre: 'visible', etiqueta: 'Mostrar mi perfil y mis fotos a los alumnos de este dojo', tipo: 'checkbox', valor: p.visible, ayuda: 'Si no lo marcas, solo la administración del dojo ve tu perfil.' }
+    ], async function (v) {
+      await k.llamar('guardarPerfilTutor', { disciplinas: v.disciplinas, grado: v.grado, experiencia: v.experiencia, presentacion: v.presentacion, visible: !!v.visible });
+      ui.aviso(v.visible ? 'Perfil guardado. Tus alumnos ya lo ven en "Nuestros tutores".' : 'Perfil guardado. Por ahora solo lo ve la administración.', 'ok');
+    }, { textoBoton: 'Guardar perfil' })));
+
+    var fotos = el('div', { class: 'fotos-tutor' });
+    p.fotos.forEach(function (id, i) {
+      var img = imagen('Tu foto ' + (i + 1));
+      fotos.appendChild(el('figure', null, img, acc('Quitar', 'peligro', 'Quitar la foto ' + (i + 1), async function () {
+        if (!(await ui.confirmar('Se quita esta foto de tu perfil.', { titulo: 'Quitar foto', aceptar: 'Quitar', peligro: true }))) return;
+        await k.llamar('quitarFotoTutor', { archivoId: id });
+        if (k.vigente()) await repintar();
+      })));
+      cargarFoto(img, k, yo, id);
+    });
+    var subir = p.fotos.length < 4 ? ui.formulario([
+      { nombre: 'foto', etiqueta: 'Agregar una foto (JPG o PNG)', tipo: 'file', accept: 'image/jpeg,image/png', requerido: true }
+    ], async function (v) {
+      var archivo = await fotoLista(v.foto);
+      await k.llamar('subirFotoTutor', { archivo: archivo });
+      ui.aviso('Foto agregada.', 'ok');
+      if (k.vigente()) await repintar();
+    }, { textoBoton: 'Subir foto' }) : el('p', { class: 'ayuda', texto: 'Ya tienes 4 fotos. Quita una para subir otra.' });
+    zona.appendChild(D.panel(null, el('h2', { texto: 'Tus fotos (' + p.fotos.length + ' de 4)' }),
+      p.fotos.length ? fotos : el('p', { class: 'ayuda', texto: 'Aún no tienes fotos. Sube una donde se te vea bien: en el tatami, con tu cinturón o dando clase.' }), subir));
+  }
+
+  async function nuestrosTutores(zona, k) {
+    var r = await k.llamar('listarPerfilesTutores', {});
+    if (!k.vigente()) return;
+    if (!r.tutores.length) { zona.appendChild(D.vacio('Todavía no hay perfiles de tutores para mostrar. Cada tutor llena el suyo en "Mi perfil de tutor".')); return; }
+    var nivel = auth.estado.nivel;
+    zona.appendChild(el('div', { class: 'tarjetas-tutor' }, r.tutores.map(function (t) {
+      var fotos = el('div', { class: 'fotos-tutor' }, t.fotos.map(function (id, i) { var img = imagen('Foto de ' + t.nombre + ' ' + (i + 1)); cargarFoto(img, k, t.usuarioId, id); return img; }));
+      return el('article', { class: 'tarjeta tarjeta-tutor' },
+        t.fotos.length ? fotos : null,
+        el('h2', { texto: t.nombre || 'Tutor' }),
+        t.grado ? el('p', null, el('b', { texto: t.grado })) : null,
+        t.disciplinas ? el('p', { texto: t.disciplinas }) : null,
+        t.experiencia ? el('p', { class: 'ayuda', texto: t.experiencia }) : null,
+        t.presentacion ? t.presentacion.split(/\n{2,}/).map(function (par) { return el('p', { texto: par }); }) : null,
+        t.clases.length ? el('ul', { class: 'lista-simple' }, t.clases.map(function (c) { return el('li', { texto: (c.disciplina ? c.disciplina + ' · ' : '') + D.diaTxt(c.dia) + ' ' + c.horaInicio + '–' + c.horaFin }); })) : null,
+        nivel !== 'alumno' && !t.visible ? el('p', { class: 'ayuda', texto: 'Oculto para los alumnos (el tutor no lo ha hecho visible).' }) : null);
+    })));
+  }
+
+  D.vista('perfil-tutor', 'tutor', function (c, ctx) { return D.alcance(c, ctx, { titulo: 'Mi perfil de tutor', intro: 'Tus aptitudes y tus fotos. Si lo haces visible, tus alumnos te conocen en "Nuestros tutores".' }, miPerfil); });
+  D.vista('nuestros-tutores', ['admin', 'tutor', 'alumno'], function (c, ctx) { return D.alcance(c, ctx, { titulo: 'Nuestros tutores', intro: 'Quiénes enseñan en el dojo y qué clases dan.' }, nuestrosTutores); });
+
   D.vista('disponibilidad', 'tutor', function (c, ctx) { return D.alcance(c, ctx, { titulo: 'Mi disponibilidad', intro: null }, disponibilidad); });
   D.vista('clases', 'tutor', function (c, ctx) { return D.alcance(c, ctx, { titulo: 'Mis clases', intro: 'Tus clases, con su cupo y cuántos alumnos hay.' }, misClases); });
   D.vista('asistencia', ['tutor', 'admin'], function (c, ctx) {

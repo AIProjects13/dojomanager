@@ -19,7 +19,7 @@
     PLAN_REQUIRED: 'Tu plan no incluye esta herramienta. Cambia de plan para usarla.',
     PASSWORD_CHANGE_REQUIRED: 'Debes cambiar tu contraseña temporal antes de continuar.',
     NOTICE_REQUIRED: 'Antes de continuar, lee y acepta el aviso de privacidad.',
-    PAUSED: 'Tu credencial está pausada por un pago atrasado. Puedes ver tus cobros, tus recibos, subir tu comprobante y manejar tus permisos.',
+    PAUSED: 'Tu credencial está pausada. Comunícate con la administración de tu dojo. Puedes ver tus cobros, tus recibos, subir tu comprobante y manejar tus permisos.',
     FULL: 'Ya no hay cupo.',
     TOO_LARGE: 'El archivo o la solicitud es demasiado grande.',
     RATE_LIMIT: 'Hiciste muchas solicitudes seguidas. Espera un minuto e intenta de nuevo.',

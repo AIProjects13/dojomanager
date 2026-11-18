@@ -60,6 +60,29 @@
             }));
             return el('div', { class: 'asignar-plan' }, sel, b);
           }
+        },
+        {
+          clave: 'diaPago', titulo: 'Día de cobro', formato: function (v, f) {
+            return f.plan && f.plan.esCortesia ? 'No se cobra (cortesía)' : P.diaCobroDojo(c, f, async function () { if (ctx.vigente()) await pintar(); });
+          }
+        },
+        {
+          clave: 'organizacionId', titulo: 'Mover a', formato: function (v, f) {
+            var activas = d.organizaciones.filter(function (o) { return o.estado === 'activo'; });
+            var sel = el('select', { 'aria-label': 'Organización para ' + f.nombre },
+              [el('option', { value: '', texto: 'Sin organización' })].concat(activas.map(function (o) { return el('option', { value: o.organizacionId, texto: o.nombre }); })));
+            sel.value = f.organizacionId || '';
+            var b = P.boton('Mover', '', 'Mover ' + f.nombre + ' a la organización elegida', P.protegido(c, async function () {
+              if (sel.value === (f.organizacionId || '')) { ui.aviso(f.nombre + ' ya está en esa organización.'); return; }
+              var destino = sel.value ? sel.options[sel.selectedIndex].textContent : 'ninguna organización';
+              var ok = await ui.confirmar('Mover ' + f.nombre + ' a ' + destino + '. Sus alumnos, tutores, cobros y plan no cambian; desde ahora lo administra el administrador de dojos de ' + destino + ' y deja de verlo el anterior.', { titulo: 'Mover dojo', aceptar: 'Mover dojo' });
+              if (!ok) return;
+              await api('moverDojo', { dojoId: f.dojoId, organizacionId: sel.value });
+              ui.aviso(f.nombre + ' ahora está en ' + destino + '.', 'ok');
+              if (ctx.vigente()) await pintar();
+            }));
+            return el('div', { class: 'asignar-plan' }, sel, b);
+          }
         }
       ], filas, { titulo: 'Dojos', vacio: 'Aún no hay dojos. Crea el primero abajo.' });
       P.seccion(c, 'Dojos', tabla);
@@ -70,9 +93,10 @@
         { nombre: 'nombre', etiqueta: 'Nombre del dojo', requerido: true, minlength: 2, maxlength: 80, autocomplete: 'off' },
         { nombre: 'slug', etiqueta: 'Identificador (opcional)', maxlength: 40, autocomplete: 'off', ayuda: 'Minúsculas, números y guiones. Si lo dejas vacío se arma con el nombre.' },
         { nombre: 'organizacionId', etiqueta: 'Organización', tipo: 'select', opciones: [{ valor: '', etiqueta: 'Sin organización' }].concat(orgs.map(function (o) { return { valor: o.organizacionId, etiqueta: o.nombre }; })) },
-        { nombre: 'planId', etiqueta: 'Plan', tipo: 'select', valor: 'basico', opciones: planes.map(function (p) { return { valor: p.planId, etiqueta: etiquetaPlan(p) }; }), ayuda: 'Básico por defecto. Puedes cambiarlo después.' }
+        { nombre: 'planId', etiqueta: 'Plan', tipo: 'select', valor: 'basico', opciones: planes.map(function (p) { return { valor: p.planId, etiqueta: etiquetaPlan(p) }; }), ayuda: 'Básico por defecto. Puedes cambiarlo después. La cortesía cubre un solo dojo por organización.' },
+        { nombre: 'diaPago', etiqueta: 'Día de cobro de la plataforma', tipo: 'select', valor: '1', opciones: P.DIAS_COBRO, ayuda: 'El primer mes se cobra por días hasta ese día.' }
       ], async function (v) {
-        var r = await api('crearDojo', { nombre: v.nombre, slug: v.slug, organizacionId: v.organizacionId, planId: v.planId });
+        var r = await api('crearDojo', { nombre: v.nombre, slug: v.slug, organizacionId: v.organizacionId, planId: v.planId, diaPago: v.diaPago });
         ui.aviso('Dojo ' + r.nombre + ' creado.', 'ok');
         if (ctx.vigente()) await pintar();
       }, { textoBoton: 'Crear dojo' });

@@ -151,7 +151,7 @@
       return 'Tu último comprobante fue rechazado.' + (x.soloLectura ? ' Tu dojo está en solo lectura hasta que se confirme un pago válido.' : ' Sube uno válido a tiempo para no quedar en solo lectura.');
     },
     'dojo-solo-lectura': function () { return 'La cuenta de tu dojo está en solo lectura por ahora. Puedes consultar tu información, pero no registrar cambios.'; },
-    'pausado': function () { return 'Tu credencial está pausada por un pago atrasado. Puedes ver tus cobros, tu saldo y tus recibos, subir tu comprobante y manejar tus permisos.'; }
+    'pausado': function () { return 'Tu credencial está pausada. Comunícate con la administración de tu dojo. Puedes ver tus cobros, tu saldo y tus recibos, subir tu comprobante y manejar tus permisos.'; }
   };
 
   /** Franja fija de estado. `extra` es el motivo (texto) o { motivo, diasAtraso, soloLectura }. Sin estado conocido la quita. */

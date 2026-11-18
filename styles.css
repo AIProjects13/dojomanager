@@ -31,6 +31,7 @@ body[data-modo=acceso] #franja,body[data-modo=acceso] #cabecera,body[data-modo=a
 #menu a{display:block;padding:12px 14px;text-decoration:none;font-size:14px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;border-bottom:3px solid transparent}
 #menu a[aria-current=page]{border-bottom-color:var(--acento)}
 #menu a:hover{background:var(--sup)}
+#menu a .contador{display:inline-block;min-width:20px;margin-left:8px;padding:1px 6px;border-radius:10px;background:var(--boton);color:#fff;font-size:12px;line-height:18px;text-align:center;letter-spacing:0}
 #alternar-menu{display:none}
 main{flex:1;width:100%;max-width:1100px;margin:0 auto;padding:24px 20px}
 main:focus{outline:none}
@@ -331,3 +332,8 @@ dialog.dialogo-grande form>button{margin:0 8px 8px 0}
 .carga-grupo{background:var(--sup);border:1px solid var(--lin);margin:0 0 14px;padding:0 14px}
 .carga-grupo summary{cursor:pointer;padding:12px 0;font-weight:700}
 .carga-excel input[type=file]{margin:6px 0;color:var(--txt)}
+.fotos-tutor{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin:8px 0}
+.fotos-tutor figure{margin:0;display:flex;flex-direction:column;gap:6px}
+.foto-tutor{width:100%;aspect-ratio:1/1;object-fit:cover;background:var(--sup2);border:1px solid var(--lin)}
+.tarjetas-tutor{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.tarjeta-tutor h2{margin:8px 0 4px}

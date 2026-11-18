@@ -66,6 +66,22 @@
     return el('button', { type: 'button', class: 'accion' + (clase ? ' ' + clase : ''), 'aria-label': aria || null, texto: texto, al: { click: alClick } });
   }
   function acciones() { return el('div', { class: 'acciones-fila' }, Array.prototype.slice.call(arguments)); }
+  var DIAS_COBRO = [{ valor: '1', etiqueta: 'El 1 de cada mes' }, { valor: '15', etiqueta: 'El 15 de cada mes' }];
+  /** Día en que la plataforma le cobra a un dojo (1 o 15): selector + Guardar. f = fila de listarDojos. */
+  function diaCobroDojo(raiz, f, alGuardar) {
+    var sel = el('select', { 'aria-label': 'Día de cobro de ' + f.nombre }, DIAS_COBRO.map(function (d) { return el('option', { value: d.valor, texto: d.etiqueta }); }));
+    if (!f.diaPago) sel.insertBefore(el('option', { value: '', texto: 'Día ' + Number(String(f.fechaAlta).slice(8, 10)) + ' (el de su alta)' }), sel.firstChild);
+    sel.value = f.diaPago || '';
+    var b = boton('Guardar', '', 'Guardar el día de cobro de ' + f.nombre, protegido(raiz, async function () {
+      if (!sel.value || sel.value === (f.diaPago || '')) { ui.aviso('Elige el 1 o el 15 para cambiarlo.'); return; }
+      var ok = await ui.confirmar('Desde el periodo en curso, la plataforma le cobra a ' + f.nombre + ' el ' + sel.value + ' de cada mes. Ese periodo se cobra por días hasta el ' + sel.value + '; lo ya cobrado no cambia.', { titulo: 'Día de cobro', aceptar: 'Guardar' });
+      if (!ok) return;
+      await api('guardarDiaPagoDojo', { dojoId: f.dojoId, diaPago: sel.value });
+      ui.aviso('Día de cobro guardado para ' + f.nombre + '.', 'ok');
+      await alGuardar();
+    }));
+    return el('div', { class: 'asignar-plan' }, sel, b);
+  }
   function mensajeCancelado() { var e = new Error('cancelado'); e.manejado = true; return e; }
 
   // ---------------------------------------------------------------- Archivos
@@ -549,7 +565,7 @@
   window.plat = {
     el: el, fecha: fecha, fechaCorta: fechaCorta, periodo: periodo, dinero: dinero, hace: hace, planTexto: planTexto,
     etiqueta: etiqueta, etiquetaCuenta: etiquetaCuenta, etiquetaPago: etiquetaPago,
-    fallo: fallo, protegido: protegido, boton: boton, acciones: acciones, mensajeCancelado: mensajeCancelado,
+    fallo: fallo, protegido: protegido, boton: boton, acciones: acciones, mensajeCancelado: mensajeCancelado, diaCobroDojo: diaCobroDojo, DIAS_COBRO: DIAS_COBRO,
     leerArchivo: leerArchivo, descargar: descargar, pedirMotivo: pedirMotivo, verComprobante: verComprobante,
     avisoLiteral: avisoLiteral, encabezado: encabezado, seccion: seccion, dato: dato, tablaCobros: tablaCobros, tablaPagos: tablaPagos,
     HERRAMIENTAS: HERRAMIENTAS, NOMBRE_HERRAMIENTA: NOMBRE_HERRAMIENTA
